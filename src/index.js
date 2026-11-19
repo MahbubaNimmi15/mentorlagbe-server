@@ -3,12 +3,13 @@ import "dotenv/config";
 import express from "express";
 import cors from "cors";
 
+import systemRoutes from "./routes/system.routes.js";
+
 const app = express();
 
 app.disable("x-powered-by");
 
-const DATABASE_ENABLED = false;
-
+// Allowed frontend origins
 function getAllowedOrigins() {
   return (
     process.env.CLIENT_URL || "http://localhost:3000"
@@ -18,6 +19,7 @@ function getAllowedOrigins() {
     .filter(Boolean);
 }
 
+// CORS middleware
 app.use(
   cors({
     origin(origin, callback) {
@@ -35,6 +37,7 @@ app.use(
   })
 );
 
+// Parse JSON requests
 app.use(express.json({ limit: "1mb" }));
 
 // API Home
@@ -47,43 +50,10 @@ app.get("/", (req, res) => {
   });
 });
 
-// Health Check
-app.get("/api/health", (req, res) => {
-  res.status(200).json({
-    success: true,
-    status: "healthy",
-    service: "mentorlagbe-server",
-    database: "not-connected",
-  });
-});
+// System API routes
+app.use("/api", systemRoutes);
 
-// Database Status
-app.get("/api/db-status", (req, res) => {
-  res.status(503).json({
-    success: false,
-    database: "unavailable",
-    message:
-      "MongoDB integration is temporarily disabled",
-  });
-});
-
-// API Information
-app.get("/api/info", (req, res) => {
-  res.status(200).json({
-    success: true,
-    project: "MentorLagbe",
-    framework: "Express.js",
-    databaseEnabled: DATABASE_ENABLED,
-    features: {
-      authentication: "pending",
-      tuitionCRUD: "pending",
-      applications: "pending",
-      stripePayments: "pending",
-    },
-  });
-});
-
-// Unknown routes
+// API 404 handler
 app.use((req, res) => {
   res.status(404).json({
     success: false,
@@ -91,7 +61,7 @@ app.use((req, res) => {
   });
 });
 
-// Error handler
+// Central error handler
 app.use((error, req, res, next) => {
   console.error("API Error:", error.message);
 
@@ -102,11 +72,18 @@ app.use((error, req, res, next) => {
     });
   }
 
-  res.status(500).json({
+  if (error instanceof SyntaxError && error.status === 400) {
+    return res.status(400).json({
+      success: false,
+      message: "Invalid JSON request body",
+    });
+  }
+
+  return res.status(500).json({
     success: false,
     message: "Internal server error",
   });
 });
 
-// Vercel imports this Express application.
+// Vercel serverless entry point
 export default app;
