@@ -147,7 +147,10 @@ router.get("/", async (req, res) => {
     const tuitions = await getTuitionsCollection();
 
     const records = await tuitions
-      .find({ status: "approved" })
+      .find({
+        status: "approved",
+        isActive: { $ne: false },
+      })
       .sort({ createdAt: -1 })
       .limit(50)
       .toArray();

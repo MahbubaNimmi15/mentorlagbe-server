@@ -1,3 +1,5 @@
+import tuitionActivationRoutes from "./routes/tuition-activation.routes.js";
+import tuitionRejectionRoutes from "./routes/tuition-rejection.routes.js";
 
 import "dotenv/config";
 import express from "express";
@@ -50,12 +52,26 @@ app.get("/", (req, res) => {
   });
 });
 
+
 // API Routes
 app.use("/api", systemRoutes);
 app.use("/api/auth", authRoutes);
 app.use("/api/protected", protectedRoutes);
+
+// Main tuition routes
 app.use("/api/tuitions", tuitionRoutes);
+
+// Admin rejection route before tutor-only routers
+app.use("/api/tuitions", tuitionRejectionRoutes);
+
+// Tutor management and activation
 app.use("/api/tuitions", tuitionManagementRoutes);
+app.use("/api/tuitions", tuitionActivationRoutes);
+
+
+
+
+
 
 // Unknown Routes
 app.use((req, res) => {
@@ -93,3 +109,4 @@ app.use((error, req, res, next) => {
 });
 
 export default app;
+
