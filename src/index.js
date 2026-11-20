@@ -4,6 +4,7 @@ import express from "express";
 import cors from "cors";
 
 import systemRoutes from "./routes/system.routes.js";
+import authRoutes from "./routes/auth.routes.js";
 
 const app = express();
 
@@ -37,10 +38,10 @@ app.use(
   })
 );
 
-// Parse JSON requests
+// JSON body parser
 app.use(express.json({ limit: "1mb" }));
 
-// API Home
+// API home
 app.get("/", (req, res) => {
   res.status(200).json({
     success: true,
@@ -50,10 +51,11 @@ app.get("/", (req, res) => {
   });
 });
 
-// System API routes
+// API routes
 app.use("/api", systemRoutes);
+app.use("/api/auth", authRoutes);
 
-// API 404 handler
+// Unknown routes
 app.use((req, res) => {
   res.status(404).json({
     success: false,
@@ -85,5 +87,5 @@ app.use((error, req, res, next) => {
   });
 });
 
-// Vercel serverless entry point
+// Vercel imports this Express application
 export default app;
