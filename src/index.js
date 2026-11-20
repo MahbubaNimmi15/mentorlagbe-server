@@ -5,12 +5,12 @@ import cors from "cors";
 
 import systemRoutes from "./routes/system.routes.js";
 import authRoutes from "./routes/auth.routes.js";
+import protectedRoutes from "./routes/protected.routes.js";
 
 const app = express();
 
 app.disable("x-powered-by");
 
-// Allowed frontend origins
 function getAllowedOrigins() {
   return (
     process.env.CLIENT_URL || "http://localhost:3000"
@@ -20,7 +20,6 @@ function getAllowedOrigins() {
     .filter(Boolean);
 }
 
-// CORS middleware
 app.use(
   cors({
     origin(origin, callback) {
@@ -38,10 +37,9 @@ app.use(
   })
 );
 
-// JSON body parser
 app.use(express.json({ limit: "1mb" }));
 
-// API home
+// API Home
 app.get("/", (req, res) => {
   res.status(200).json({
     success: true,
@@ -51,19 +49,20 @@ app.get("/", (req, res) => {
   });
 });
 
-// API routes
+// API Routes
 app.use("/api", systemRoutes);
 app.use("/api/auth", authRoutes);
+app.use("/api/protected", protectedRoutes);
 
-// Unknown routes
+// Unknown Routes
 app.use((req, res) => {
-  res.status(404).json({
+  return res.status(404).json({
     success: false,
     message: "API route not found",
   });
 });
 
-// Central error handler
+// Central Error Handler
 app.use((error, req, res, next) => {
   console.error("API Error:", error.message);
 
@@ -74,7 +73,10 @@ app.use((error, req, res, next) => {
     });
   }
 
-  if (error instanceof SyntaxError && error.status === 400) {
+  if (
+    error instanceof SyntaxError &&
+    error.status === 400
+  ) {
     return res.status(400).json({
       success: false,
       message: "Invalid JSON request body",
@@ -87,5 +89,4 @@ app.use((error, req, res, next) => {
   });
 });
 
-// Vercel imports this Express application
 export default app;

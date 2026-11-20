@@ -2,21 +2,25 @@
 import { Router } from "express";
 
 import { connectDB } from "../config/db.js";
+
 import {
   registerSchema,
   loginSchema,
 } from "../validators/auth.validator.js";
+
 import {
   hashPassword,
   comparePassword,
 } from "../utils/password.js";
+
 import { generateToken } from "../utils/token.js";
+import { requireAuth } from "../middlewares/auth.middleware.js";
 
 const router = Router();
 
 let usersCollectionPromise = null;
 
-// Connect to the database and ensure email uniqueness.
+// Connect to MongoDB and ensure email uniqueness.
 async function getUsersCollection() {
   if (!usersCollectionPromise) {
     usersCollectionPromise = (async () => {
@@ -38,7 +42,7 @@ async function getUsersCollection() {
   return usersCollectionPromise;
 }
 
-// Never send the password hash to the frontend.
+// Never send password hashes to the frontend.
 function publicUser(user) {
   return {
     id: String(user._id),
@@ -75,7 +79,6 @@ router.post("/register", async (req, res) => {
     }
 
     const passwordHash = await hashPassword(password);
-
     const now = new Date();
 
     const newUser = {
@@ -174,6 +177,16 @@ router.post("/login", async (req, res) => {
       message: "Login service unavailable",
     });
   }
+});
+
+// GET /api/auth/me
+// Return the current user after JWT verification.
+router.get("/me", requireAuth, (req, res) => {
+  return res.status(200).json({
+    success: true,
+    message: "Authenticated user retrieved successfully",
+    user: req.user,
+  });
 });
 
 export default router;
