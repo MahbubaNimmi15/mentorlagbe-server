@@ -6,6 +6,8 @@ import cors from "cors";
 import systemRoutes from "./routes/system.routes.js";
 import authRoutes from "./routes/auth.routes.js";
 import protectedRoutes from "./routes/protected.routes.js";
+import tuitionRoutes from "./routes/tuition.routes.js";
+import tuitionManagementRoutes from "./routes/tuition-management.routes.js";
 
 const app = express();
 
@@ -39,9 +41,8 @@ app.use(
 
 app.use(express.json({ limit: "1mb" }));
 
-// API Home
 app.get("/", (req, res) => {
-  res.status(200).json({
+  return res.status(200).json({
     success: true,
     project: "MentorLagbe",
     message: "Welcome to MentorLagbe API",
@@ -53,6 +54,8 @@ app.get("/", (req, res) => {
 app.use("/api", systemRoutes);
 app.use("/api/auth", authRoutes);
 app.use("/api/protected", protectedRoutes);
+app.use("/api/tuitions", tuitionRoutes);
+app.use("/api/tuitions", tuitionManagementRoutes);
 
 // Unknown Routes
 app.use((req, res) => {
